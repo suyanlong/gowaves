@@ -141,6 +141,15 @@ func NewPublicKeyFromBase58(s string) (PublicKey, error) {
 	return array32FromBase58(s, "PublicKey")
 }
 
+func NewPublicKeyFromBytes(b []byte) (PublicKey, error) {
+	var pk PublicKey
+	if l := len(b); l < PublicKeySize {
+		return pk, fmt.Errorf("insufficient array length %d, expected atleast %d", l, PublicKeySize)
+	}
+	copy(pk[:], b[:PublicKeySize])
+	return pk, nil
+}
+
 type Signature [SignatureSize]byte
 
 func (s Signature) String() string {
