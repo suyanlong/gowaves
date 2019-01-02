@@ -133,6 +133,35 @@ func (a *Transactions) Info(ctx context.Context, id crypto.Digest) (proto.Transa
 	return out[0], response, nil
 }
 
+func (a *Transactions) Broadcast(ctx context.Context, tx proto.Transaction) (interface{}, *Response, error) {
+	bts, err := json.Marshal(tx)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	url, err := joinUrl(a.options.BaseUrl, "/transactions/broadcast")
+	if err != nil {
+		return nil, nil, err
+	}
+
+	req, err := http.NewRequest(
+		"POST",
+		url.String(),
+		bytes.NewReader(bts))
+
+	if err != nil {
+		return nil, nil, err
+	}
+
+	out := new(interface{})
+	response, err := doHttp(ctx, a.options, req, out)
+	if err != nil {
+		return nil, response, err
+	}
+
+	return out, response, nil
+}
+
 // Guess transaction from type and version
 func GuessTransactionType(t *TransactionTypeVersion) (proto.Transaction, error) {
 	var out proto.Transaction
@@ -184,7 +213,7 @@ func (a *Transactions) Address(ctx context.Context, address proto.Address, limit
 		return nil, nil, err
 	}
 
-	var out []TransactionsField
+	var out TransactionsField
 	response, err := doHttp(ctx, a.options, req, &out)
 	if err != nil {
 		return nil, response, err
@@ -192,5 +221,5 @@ func (a *Transactions) Address(ctx context.Context, address proto.Address, limit
 	if len(out) == 0 {
 		return nil, response, nil
 	}
-	return out[0], response, nil
+	return out, response, nil
 }
