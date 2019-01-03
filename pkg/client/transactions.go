@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/pkg/errors"
+	"github.com/tidwall/gjson"
 	"github.com/wavesplatform/gowaves/pkg/crypto"
 	"github.com/wavesplatform/gowaves/pkg/proto"
 	"net/http"
@@ -173,7 +174,11 @@ func GuessTransactionType(t *TransactionTypeVersion) (proto.Transaction, error) 
 	case proto.IssueTransaction: // 3
 		out = &proto.IssueV1{}
 	case proto.TransferTransaction: // 4
-		out = &proto.TransferV1{}
+		if t.Version == 1 {
+			out = &proto.TransferV1{}
+		} else {
+			out = &proto.TransferV2{}
+		}
 	case proto.ReissueTransaction: // 5
 		out = &proto.ReissueV1{}
 	case proto.BurnTransaction: // 6
@@ -213,13 +218,23 @@ func (a *Transactions) Address(ctx context.Context, address proto.Address, limit
 		return nil, nil, err
 	}
 
-	var out TransactionsField
-	response, err := doHttp(ctx, a.options, req, &out)
+	buf := new(bytes.Buffer)
+	response, err := doHttp(ctx, a.options, req, buf)
 	if err != nil {
 		return nil, response, err
 	}
-	if len(out) == 0 {
-		return nil, response, nil
+
+	res := gjson.Parse(buf.String()).Array()[0]
+	fmt.Println("-----------------------:", res)
+	out := TransactionsField{}
+	err = json.Unmarshal([]byte(res.String()), &out)
+	if err != nil {
+		return nil, response, &ParseError{Err: err}
 	}
+
+	if len(out) == 0 {
+		return nil, response, errors.New("invalid transaction ")
+	}
+
 	return out, response, nil
 }

@@ -715,6 +715,10 @@ type transfer struct {
 	Fee         uint64           `json:"fee"`
 	Recipient   Recipient        `json:"recipient"`
 	Attachment  Attachment       `json:"attachment,omitempty"`
+
+	FeeAssetID OptionalAsset `json:"feeAsset,omitempty"`
+	Sender     string        `json:"sender,omitempty"`
+	Height     int64         `json:"height,omitempty"`
 }
 
 func newTransfer(senderPK crypto.PublicKey, amountAsset, feeAsset OptionalAsset, timestamp, amount, fee uint64, recipient Address, attachment string) (*transfer, error) {
@@ -824,6 +828,8 @@ type TransferV1 struct {
 	Version   byte              `json:"version,omitempty"`
 	ID        *crypto.Digest    `json:"id,omitempty"`
 	Signature *crypto.Signature `json:"signature,omitempty"`
+
+	Proofs *ProofsV1 `json:"proofs,omitempty"`
 	transfer
 }
 
