@@ -126,6 +126,27 @@ func (a *Addresses) Addresses(ctx context.Context) ([]proto.Address, *Response, 
 	return out, response, nil
 }
 
+// Generate wallet accounts addresses
+func (a *Addresses) GenerateAddresses(ctx context.Context) (*proto.Address, *Response, error) {
+	url, err := joinUrl(a.options.BaseUrl, "/addresses")
+	if err != nil {
+		return nil, nil, err
+	}
+	req, err := http.NewRequest("POST", url.String(), nil)
+	req.Header.Set("X-API-Key", a.options.ApiKey)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var out = new(addresses)
+	response, err := doHttp(ctx, a.options, req, out)
+	if err != nil {
+		return nil, response, err
+	}
+
+	return out.Address, response, nil
+}
+
 type AddressesValidate struct {
 	Address proto.Address `json:"address"`
 	Valid   bool          `json:"valid"`
@@ -177,7 +198,7 @@ func (a *Addresses) EffectiveBalance(ctx context.Context, address proto.Address)
 	return out, response, nil
 }
 
-type addressesPublicKey struct {
+type addresses struct {
 	Address *proto.Address `json:"address"`
 }
 
@@ -192,7 +213,7 @@ func (a *Addresses) PublicKey(ctx context.Context, publicKey string) (*proto.Add
 		return nil, nil, err
 	}
 
-	out := new(addressesPublicKey)
+	out := new(addresses)
 	response, err := doHttp(ctx, a.options, req, out)
 	if err != nil {
 		return nil, response, err
