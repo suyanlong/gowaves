@@ -225,7 +225,6 @@ func (a *Transactions) Address(ctx context.Context, address proto.Address, limit
 	}
 
 	res := gjson.Parse(buf.String()).Array()[0]
-	fmt.Println("-----------------------:", res)
 	out := TransactionsField{}
 	err = json.Unmarshal([]byte(res.String()), &out)
 	if err != nil {
@@ -234,6 +233,40 @@ func (a *Transactions) Address(ctx context.Context, address proto.Address, limit
 
 	if len(out) == 0 {
 		return nil, response, errors.New("invalid transaction ")
+	}
+
+	return out, response, nil
+}
+
+type Fee struct {
+	FeeAmount  int64               `json:"feeAmount,omitempty"`
+	FeeAssetID proto.OptionalAsset `json:"feeAssetId,omitempty"`
+}
+
+func (a *Transactions) CalculateFee(ctx context.Context, tx proto.Transaction) (*Fee, *Response, error) {
+	bts, err := json.Marshal(tx)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	url, err := joinUrl(a.options.BaseUrl, "/transactions/calculateFee")
+	if err != nil {
+		return nil, nil, err
+	}
+
+	req, err := http.NewRequest(
+		"POST",
+		url.String(),
+		bytes.NewReader(bts))
+
+	if err != nil {
+		return nil, nil, err
+	}
+
+	out := new(Fee)
+	response, err := doHttp(ctx, a.options, req, out)
+	if err != nil {
+		return nil, response, err
 	}
 
 	return out, response, nil
