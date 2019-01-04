@@ -126,6 +126,32 @@ func (a *Addresses) Addresses(ctx context.Context) ([]proto.Address, *Response, 
 	return out, response, nil
 }
 
+type Seed struct {
+	Address proto.Address `json:"address,omitempty"`
+	Seed    string        `json:"seed,omitempty"`
+}
+
+// Export seed value for the {address}
+func (a *Addresses) Seed(ctx context.Context, address *proto.Address) (*Seed, *Response, error) {
+	url, err := joinUrl(a.options.BaseUrl, fmt.Sprintf("/addresses/seed/%s", address.String()))
+	if err != nil {
+		return nil, nil, err
+	}
+	req, err := http.NewRequest("GET", url.String(), nil)
+	req.Header.Set("X-API-Key", a.options.ApiKey)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var out = new(Seed)
+	response, err := doHttp(ctx, a.options, req, out)
+	if err != nil {
+		return nil, response, err
+	}
+
+	return out, response, nil
+}
+
 // Generate wallet accounts addresses
 func (a *Addresses) GenerateAddresses(ctx context.Context) (*proto.Address, *Response, error) {
 	url, err := joinUrl(a.options.BaseUrl, "/addresses")
