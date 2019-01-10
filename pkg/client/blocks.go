@@ -156,7 +156,7 @@ func (b *TransactionsField) UnmarshalJSON(data []byte) error {
 
 	transactions := make([]proto.Transaction, len(tt))
 	for i, row := range tt {
-		realType, err := GuessTransactionType(row)
+		realType, err := GuessTransactionTypeSingle(row)
 		if err != nil {
 			return err
 		}

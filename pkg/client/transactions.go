@@ -199,9 +199,29 @@ func GuessTransactionType(t *TransactionTypeVersion) (proto.Transaction, error) 
 		out = &proto.SetScriptV1{}
 	case proto.SponsorshipTransaction: // 14
 		out = &proto.SponsorshipV1{}
+	default:
+		out = &proto.Empty{}
 	}
 	if out == nil {
 		return nil, errors.Errorf("unknown transaction type %d version %d", t.Type, t.Version)
+	}
+	return out, nil
+}
+
+// Guess transaction from type and version
+func GuessTransactionTypeSingle(t *TransactionTypeVersion) (proto.Transaction, error) {
+	var out proto.Transaction
+	switch t.Type {
+	case proto.TransferTransaction: // 4
+		if t.Version == 1 {
+			out = &proto.TransferV1{}
+		} else if t.Version == 2 {
+			out = &proto.TransferV2{}
+		} else {
+			out = &proto.Empty{}
+		}
+	default:
+		out = &proto.Empty{}
 	}
 	return out, nil
 }
@@ -283,7 +303,7 @@ func (b *TransactionAlis) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	realType, err := GuessTransactionType(tt)
+	realType, err := GuessTransactionTypeSingle(tt)
 	if err != nil {
 		return err
 	}
