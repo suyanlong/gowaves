@@ -271,3 +271,57 @@ func (a *Transactions) CalculateFee(ctx context.Context, tx proto.Transaction) (
 
 	return out, response, nil
 }
+
+type TransactionAlis struct {
+	tx proto.Transaction
+}
+
+func (b *TransactionAlis) UnmarshalJSON(data []byte) error {
+	var tt = &TransactionTypeVersion{}
+	err := json.Unmarshal(data, tt)
+	if err != nil {
+		return err
+	}
+
+	realType, err := GuessTransactionType(tt)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(data, realType)
+	if err != nil {
+		return err
+	}
+	b.tx = realType
+	return nil
+}
+
+func (a *Transactions) Sign(ctx context.Context, tx proto.Transaction) (proto.Transaction, *Response, error) {
+	bts, err := json.Marshal(tx)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	url, err := joinUrl(a.options.BaseUrl, "/transactions/sign")
+	if err != nil {
+		return nil, nil, err
+	}
+
+	req, err := http.NewRequest(
+		"POST",
+		url.String(),
+		bytes.NewReader(bts))
+	req.Header.Set("X-API-Key", a.options.ApiKey)
+
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var out = &TransactionAlis{}
+	response, err := doHttp(ctx, a.options, req, out)
+	if err != nil {
+		return nil, response, err
+	}
+
+	return out.tx, response, nil
+}

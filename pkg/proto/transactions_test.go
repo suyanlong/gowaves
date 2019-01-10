@@ -832,6 +832,14 @@ func TestTransferV2ToJSON(t *testing.T) {
 	}
 }
 
+func TestTransferV2FromJson(t *testing.T) {
+	var jsonStr = `{"amount":1,"assetId":null,"attachment":"2Fwb7Z","fee":10000,"feeAsset":null,"feeAssetId":null,"id":"9zZXRXPPGPgEqFMuoJ195BKqjqHi2kEUKeA97gCY4Cvq","proofs":["4KK1C1cdb9xqJSroaV9SaQHXa1qiLt6LfMpn9xH67DDF4RBysNrXL49xo3Zn3QBs1nFFVEAehKp3GS7wodEwNYBa"],"recipient":"3Mz2vJZcA3nhumt6xLJwtSGbGY6Lz9yAuVt","sender":"3N72H3mnRhqMePSx5PvqxPMY9oFHZSdR3pQ","senderPublicKey":"Aoc56UBBRyE8PTvk4Cd9EGJEW3XZiL5rNzQHkkc6Coo5","timestamp":1546943242199,"type":4,"version":2}`
+	var txV2 = new(TransferV2)
+	err := json.Unmarshal([]byte(jsonStr), txV2)
+	t.Log(err)
+	t.Log(fmt.Sprintf("%+v", txV2))
+}
+
 func TestReissueV1Validations(t *testing.T) {
 	tests := []struct {
 		quantity uint64
